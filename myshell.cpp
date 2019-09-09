@@ -316,6 +316,10 @@ void execArgs(char** my_token,int k)
           {
           cout<<v1[3]<<endl;
           }
+          else if(strcmp(my_token[1],"$PS1")==0)
+          {
+          cout<<v1[0]<<endl;
+          }
           else 
             {
               if(execvp(my_token[0], my_token)<0)
