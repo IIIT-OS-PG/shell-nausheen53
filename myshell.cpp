@@ -18,20 +18,25 @@
 #include<readline/readline.h> 
 #include<unordered_map>
 #include<readline/history.h>
+
   
 #define MAXCOM 1000 // max number of letters to be supported 
 #define MAXLIST 100 // max number of commands to be supported 
 #define clear() printf("\033[H\033[J") 
 
 using namespace std;
+int pipe_count =0;
 bool outr =false;
 bool append = false;
 vector<string> v1;
 vector<string>v2;
 int prid;
 void init_prompt();
+bool flag1 =false;
+void process_string(char str[]) ;
 //int readInput();
 unordered_map<char*,string> m1;
+unordered_map<char*,string> :: iterator it1,it2;
 void inputmode()
 {
   struct termios tattr;
@@ -65,13 +70,32 @@ void printprompt()
   {
     //cout<<temp<<endl;
     ctr1[m] = temp;
-    //cout<<v[i]<<endl;
+    //cout<<ctr1[m]<<endl;
     //i++;
     m++;
     temp=strtok(NULL,":");
   }
   ctr1[m] = NULL;
   return ctr1;
+}
+
+char** splitsstr(char s[])
+{
+  char** ctr2 = new char*[20];
+
+  char* temp2=strtok(s, " ");
+  int m2=0;
+  while(temp2!=NULL)
+  {
+    //cout<<temp<<endl;
+    ctr2[m2] = temp2;
+    //cout<<v[i]<<endl;
+    //i++;
+    m2++;
+    temp2=strtok(NULL,":");
+  }
+  ctr2[m2] = NULL;
+  return ctr2;
 }
 
 void init_prompt()
@@ -112,55 +136,52 @@ void init_prompt()
  
    fclose(f2);
 
-FILE* f3;
-    char c4;
-    char* c5 = (char*)malloc((sizeof(char))*1024);
-    f3 = fopen("/etc/hostname", "r"); 
-    int k=0;
-   if (f3 == NULL)
-   {
-      perror("Error while opening the file.\n");
-      exit(EXIT_FAILURE);
-   }
+//////////////////////////////////////////////////////////////////
+       FILE* file = fopen("/etc/passwd", "r");
+    char line5[256];
+    string s;
+    int p = 0;
+
+    while (fgets(line5, sizeof(line5), file)) {
+        p++;
+        if(p == 41 )
+        {
+            //printf("%s", line);  
+            s = line5; 
+            //cout<<s;
+        }
+    }
  
-   while((c4 = fgetc(f3)) != EOF)
-    {
-      c5[k++]= c4;
-    }c5[k]= '\0';
- 
-    fclose(f3);
-    string myString(c5, k);
+    fclose(file);
     char st[2000];
     int l;
-    for(l=0;l<k;l++)
+    int len3 = s.size();
+    for(l=0;l<len3;l++)
     {
-      st[l]=myString[l];
+      st[l]= s[l];
+      //cout<<st[l];
     }
     st[l]='\0';
     char** chr = new char*[20];
     chr = splits1(st);
-//////////////////////////////////////////////////////////////////
+    //cout<<chr[0]<<endl;
+    //cout<<chr[5]<<endl;
+    fclose(file);
+    //////////////////////////////////////////////////////////////////////
+    char chara ='$';
+    FILE* ofp;
+    ofp = fopen("mybashrc4.txt","w");
+    fprintf(ofp ,"%c\n" ,chara);
+    fprintf(ofp,"%s",c1 );
+    fprintf(ofp, "%s",c3 );
+    fprintf(ofp, "%s\n",chr[0]);
+    fprintf(ofp, "%s\n",chr[5]);
+    fclose(ofp);
+    //////////////////////////////////////////////////////////////////////
 
-    ///////////////////////////////////////////////////////////
-      ofstream st1;
-      st1.open("mybashrc1.txt",ios::out);
-      if(!st1)
-      {
-        cout<<"Cannot initialize variables.";
-      }
-      else
-      {
-        st1<<"$"<<endl; //PS1
-        st1<<c1<<endl; //PATH
-        st1<<c3<<endl; //HOSTNAME
-        st1<<chr[0]<<endl; //USER
-        st1<<chr[5]<<endl; //HOME
-      }
-    st1.close();
-
-    string line2;
+   string line2;
     int i1=0;
-    ifstream ifp("mybashrc1.txt");
+    ifstream ifp("mybashrc4.txt");
     if(ifp.is_open())
     {
       while(getline(ifp,line2))
@@ -169,8 +190,26 @@ FILE* f3;
     }
 
   ifp.close();}
- // cout<<v1[0]<<endl;
-  //cout<<v1[1]<<endl;
+  ////////////////////////////////////////////////////////////////////
+   /* FILE* fpr;
+    string line2;
+    int lengg = line2.size();
+    ssize_t read;
+    fpr = fopen("mybashrc4.txt","r");
+    if(fpr == NULL)
+    {
+      cout<<"error while opening file"<<endl;
+    }
+    while((read = getline(line2 , lengg, fpr)) != -1)
+    {
+      v1.push_back(line2);
+    }*/
+  ////////////////////////////////////////////////////////////////////
+  /*cout<<v1[0]<<endl;
+  cout<<v1[1]<<endl;
+  cout<<v1[2]<<endl;
+  cout<<v1[3]<<endl;
+  cout<<v1[4]<<endl;*/
 }
 
 
@@ -188,55 +227,83 @@ if (strcmp(s[1],"~")==0) {
 
 void execArgs(char** my_token,int k) 
 {   
-    unordered_map<char*,string> :: iterator it1;
+   // cout<<"execlnsvln k andar hun mai.."<<endl;
      pid_t pid = fork(); 
      int chdir_rtrn; 
-    if (pid <0) 
-    { 
-        printf("\nFailed forking child.."); 
-        return; 
-    } 
+      if (pid <0) 
+        { 
+          printf("\nFailed forking child.."); 
+          return; 
+        } 
     else if (pid == 0) 
-    {
+    {  //cout<<"baccha ban gya"<<endl;
+        
+        
+
         if(strcmp(my_token[0],"cd")==0)
-      {
+      {  //cout<<"inside pid"<<endl;
          chdir_rtrn = change_dir(my_token);
         if(chdir_rtrn<0)
-        printf("Error while changing the directory, error is : %s",strerror(errno));
-        execvp(my_token[0], my_token);
+        {printf("Error while changing the directory, error is : %s",strerror(errno));}
+        //execvp(my_token[0], my_token);
 
       } 
       else if(strcmp(my_token[0],"$$")==0)
       {
+        //cout<<"inside $$"<<endl;
         cout<<prid<<endl;
       }
 
-      else if(outr == true || append == true)
+      else if(outr)// || append == true)
       { 
+       // cout<<"redirection k andar"<<endl;
         my_token[k]=NULL;
         //cout<<my_token[k+1]<<endl;
         int fd;
-        if(outr == true)
-        { fd = open(my_token[k+1],O_WRONLY | O_CREAT ,0644);}
-      else if(append == true)
-      {
-         fd = open(my_token[k+1],O_WRONLY| O_CREAT | O_APPEND,0644);
-      }
+        fd = open(my_token[k+1],O_WRONLY | O_CREAT ,0644);
+          if(fd < 0)
+          {
+          cout<<"Cannot open file"<<endl;
+          }
+          else{
+          dup2(fd,1);
+          close(fd);
+          outr = false;
+          cout<<outr;}
+          cout<<"toke" <<my_token[0]<<my_token[1]<<endl;
+          if(execvp(my_token[0], my_token)<0)
+          {
+          cout<<"command not found"<<endl;
+          }
+        }
+      else if(append)
+      { 
+          my_token[k]=NULL;
+        //cout<<my_token[k+1]<<endl;
+        int fd;
+        //cout<<"append k andar"<<endl;
+         fd = open(my_token[k+1],O_WRONLY|O_CREAT | O_APPEND,0644);
         if(fd < 0)
         {
           cout<<"Cannot open file"<<endl;
         }
+        else{
         dup2(fd,1);
         close(fd);
-        outr = false;
-        append = false;
-        execvp(my_token[0], my_token);
+        append = false;}
+        if(execvp(my_token[0], my_token)<0)
+        {
+          cout<<"command not found"<<endl;
+        }
       }
+        
+        
+      
        else if(strcmp(my_token[0],"echo")==0)
       {  //cout<<v1[1]<<v1[2];
-        
+        //cout<<"echo wale k andar"<<endl;
         if(strcmp(my_token[1],"$HOME")==0)
-        {
+        { //cout<<"home k anadr"<<endl;
           cout<<v1[4]<<endl;
         }
         else if(strcmp(my_token[1],"$PATH")==0)
@@ -249,11 +316,16 @@ void execArgs(char** my_token,int k)
           {
           cout<<v1[3]<<endl;
           }
-          else execvp(my_token[0], my_token);
-            
+          else 
+            {
+              if(execvp(my_token[0], my_token)<0)
+              {
+                cout<<"command not found"<<endl;
+              }  
+            }  
       }
       else if(strcmp(my_token[0],"history")==0)
-      {
+      {// cout<<"history k andar"<<endl;
         vector<string>::iterator it;
         it = v2.begin();
         while(it != v2.end())
@@ -261,57 +333,190 @@ void execArgs(char** my_token,int k)
           cout<<*it<<endl;
           ++it;
         }
-        execvp(my_token[0], my_token);
+        
       }
 
       else if(strcmp(my_token[0],"alias")==0)
-      { 
-        cout<<"inside alias";
-          int i = 4;
-          string s = my_token[i];
-          while(my_token[i] != "'")
-          {
-            s = s + " " + my_token[++i];
-          }
-        m1.insert({my_token[1],s});
-        cout<<s;
+      { //cout<<"inside alias";
+        //cout<<"ddd"<<my_token[3];
+        int n=0;
+        while(true)
+        {if(strcmp(my_token[n],"=")!=0)
+           {  n++;
+            //cout<<"n=="<<n<<endl;
+           }
+          else
+            break;
+        }
+        /*while(strcmp(my_token[3],"=")!=0)
+        {
+          n++;
+        }
+        cout<<"n="<<n;*/
+        string ss(my_token[n+1]);
+
+        ss = ss.substr(1);
+        if(my_token[n+2] != NULL)
+        {
+        int m =0;
+        while(my_token[m] != NULL)
+        {
+          m++;
+        }
+        string ss1(my_token[m-1]);
+        int k = ss1.size();
+        ss1 = ss1.substr(0,k-1);
+         ss = ss + " " + ss1;
+        }
+        else 
+          ss = ss.substr(0,ss.size()-1);
+         m1.insert(pair<char*, string>(my_token[1], ss));
+        // it1 = m1.find(my_token[1]);
+          //if(it1 != m1.end())
+         // {
+            //cout<<it1->second<<" "<<it1->first<<endl;
+         // } 
+         // m1[my_token[1]] = ss;*/
       }
         
-      else if((it1 = m1.find(my_token[0])) != m1.end())
+      else if(flag1)
       {
-        string s = m1[my_token[0]];
-        char** temp = new char*[10];
-        temp[0] = &s[0];
-        temp[1] = NULL;
-        execvp(temp[0],temp);
+        //cout<<"alias1 ka dusra part"<<endl;
+        string s = it2->second;
+        //cout<<s<<endl;
+        int length1 = s.size();
+        //cout<<length1<<endl;
+        char newchar[20];
+        int i;
+        for(i=0;i<length1;i++)
+        {
+          newchar[i] = s[i];
+        }newchar[i] ='\0';
+        /*for(int k =0;k<i;k++)
+        {
+          cout<<newchar[k];
+        }*/
+        char** new_token;
+        new_token = splitsstr(newchar);
+        if(execvp(new_token[0],new_token)<0)
+        {
+          cout<<"command not found"<<endl;
+        }
       }
       else 
-       execvp(my_token[0], my_token);
+       { //cout<<"main command wale pagal k andar hun"<<endl;
+        if(execvp(my_token[0], my_token)<0)
+        {
+          cout<<"command not found"<<endl;
+        }
+      }
        }
-    else { 
+
+    else 
+        { 
         wait(NULL); 
         } 
 }
+//////////////////////////////////////////////////////////////////////////////////////
+char** process_string_inside_pipe(char* command)
+{
+    char** token_arr_cmd = new char*[20];
+    char* token_cmd = strtok(command, " "); 
+    int i=0;
+    while (token_cmd != NULL) 
+    { 
+       token_arr_cmd[i]= token_cmd;
+       //cout<<token_arr_cmd[i]<<endl;
+       token_cmd = strtok(NULL, " "); 
+       i++;
+    }   token_arr_cmd[i] = NULL;
+    return token_arr_cmd;
+}
+//////////////////////////////////////////////////////////////////////////////////////
+ void my_fork_with_pipe(char** token_arr11,int pipe_count1)
+ {  
+  int file_des =0;
+  int first_cmd =0;
+    int pipe_file_des[2];
+    int command_count = pipe_count1 + 1;
+    int j=0;
+    while(j<pipe_count1)
+    {
+      pipe(pipe_file_des);
+      pid_t processid = fork();
+    if(processid < 0)
+    {
+      cout<<"process creation failed"<<endl;
+    }
 
+    else if(processid ==0)
+          {    
+            if(first_cmd != 0)
+            {
+            dup2(file_des,STDIN_FILENO);
+            close(file_des);
+            }
+            dup2(pipe_file_des[1],STDOUT_FILENO);
+            close (pipe_file_des[1]);
+            close(pipe_file_des[0]);
+            first_cmd =1;
+            char** token_pipe = process_string_inside_pipe(token_arr11[j]);
+            execvp(token_pipe[0],token_pipe);
+   } 
+   else 
+      wait(NULL);
+        close(pipe_file_des[1]);
+       file_des = pipe_file_des[0];
+       j++;
+    }
+    dup2(file_des,0);
+     close(file_des);
+      char** token_pipe = process_string_inside_pipe(token_arr11[j]);
+      execvp(token_pipe[0],token_pipe);
+ }
+//////////////////////////////////////////////////////////////////////////////////////
 int search_for_redirection(char** temp,int i)
 { int j;
   for(j=0;j<i;j++)
    {
-      if(strcmp(temp[j],">")==0)
-    { //cout<<"hello";
-      outr = true;
+      
+    if(strcmp(temp[j],">>")==0)
+    {
+      append = true;
       temp[j]=NULL;
       break;
     }
-    else if(strcmp(temp[j],">>")==0)
-    {
-      append = true;
+
+    else if(strcmp(temp[j],">")==0)
+    { //cout<<"hello";
+      outr = true;
       temp[j]=NULL;
       break;
     }
    }
    return j;
 }
+/////////////////////////////////////////////////////////////////
+void process_string_with_pipe(char str[]) 
+{ //cout<<"str="<<str;
+
+  char** token_arr1 = new char*[20];
+    char* token1 = strtok(str, "|"); 
+    int i=0;
+    while (token1 != NULL) 
+    { 
+       token_arr1[i]= token1;
+      // cout<<token_arr1[i]<<endl;
+       token1 = strtok(NULL, "|"); 
+       i++;
+    }   token_arr1[i] = NULL;
+    
+    my_fork_with_pipe(token_arr1,pipe_count);
+} 
+
+
+////////////////////////////////////////////////////////////////////
+
 void process_string(char str[]) 
 { //cout<<"str="<<str;
 
@@ -334,7 +539,15 @@ void process_string(char str[])
     else {
       k=search_for_redirection(token_arr,i);
     }
-   
+  // cout<<"exerccc k andar jaa raha"<<endl;
+   for(it2 = m1.begin();it2 != m1.end();it2++)
+        {
+          if(strcmp(it2->first,token_arr[0])==0)
+          { //cout<<"map ka interator"<<endl;
+            flag1 = true;
+            break;
+          }
+        }
     execArgs(token_arr,k);
     
 } 
@@ -350,6 +563,7 @@ int main()
   init_shell(); 
   inputmode();
   int exitshell=0;
+  string s3;
   //signal(SIGINT, sigint_handler);
  signal(SIGINT, sig_handler);
   init_prompt();
@@ -358,7 +572,8 @@ int main()
     printprompt();
     int i=0;
     char c;
-    char* c1 = (char*)malloc((sizeof(char))*2048);
+    char* c1 = (char*)malloc((sizeof(char))*1024);
+    string s;
     if(c1 == NULL)
     {
       cout<<"memory allo fail"<<endl;
@@ -369,16 +584,45 @@ int main()
       if(c == EOF)
       {
         free(c1);
-        continue;
+        //continue;
+        //break;
+        //return;
+
       }
       c1[i++]=c;
+      if(c =='|')
+      {
+        pipe_count++;
+      }
     }c1[i]='\0';
+
+    
+   /* for(int k=0;k<=i;k++)
+    {
+      if(s[k] == "|")
+      {
+
+      }
+    }*/
+
     v2.push_back(c1);
     if(strcmp(c1,"exit")==0)
     {
       exitshell =1;
     }
-     process_string(c1); 
+    //char** pr_st = new char*[50];
+    //pr_st
+    if(pipe_count != 0)
+    {
+      
+      process_string_with_pipe(c1);
+      
+    } 
+    else 
+      {
+        process_string(c1);
+      }
+    
     
   }
 
